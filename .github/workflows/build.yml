@@ -1,0 +1,28 @@
+name: build
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  module:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check scripts
+        run: sh -n module/post-fs-data.sh && sh -n module/customize.sh
+      - name: Build
+        run: ./build.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: btsco_wb_fix
+          path: build/*.zip
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/*.zip
+          generate_release_notes: true
